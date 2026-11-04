@@ -1,0 +1,39 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // require the signed in account to own this user path
+    function owner(userId) {
+      return request.auth != null && request.auth.uid == userId;
+    }
+    // validate expense fields before accepting a write
+    function validExpense() {
+      let data = request.resource.data;
+      // require the expected fields and reject extra fields
+      return data.keys().hasAll(['amountMinor', 'currency', 'amountUsdMinor',
+          'exchangeRate', 'rateDate', 'category', 'description', 'expenseDate', 'updatedAt'])
+        && data.keys().hasOnly(['amountMinor', 'currency', 'amountUsdMinor',
+          'exchangeRate', 'rateDate', 'category', 'description', 'expenseDate', 'updatedAt'])
+        // store original and converted amounts as bounded integers
+        && data.amountMinor is int && data.amountMinor > 0 && data.amountMinor <= 1000000000000
+        && data.amountUsdMinor is int && data.amountUsdMinor >= 0 && data.amountUsdMinor <= 1000000000000
+        // allow only supported currency codes
+        && data.currency in ['USD', 'EUR', 'GBP', 'JPY', 'KRW', 'CAD', 'AUD', 'CNY']
+        && data.exchangeRate is number && data.exchangeRate > 0
+        // require valid dates and reject future purchases
+        && data.rateDate is timestamp
+        && data.expenseDate is timestamp && data.expenseDate <= request.time
+        // limit categories and description length
+        && data.category in ['Food', 'Shopping', 'Transportation', 'Entertainment', 'Travel', 'Bills', 'Other']
+        && data.description is string && data.description.size() <= 200
+        // require the update timestamp to come from the server
+        && data.updatedAt == request.time;
+    }
+    // restrict expense access to the owning account
+    match /users/{userId}/expenses/{expenseId} {
+      allow read, delete: if owner(userId);
+      allow create, update: if owner(userId) && validExpense();
+    }
+    // budget/preferences rules will be added with the settings feature
+    // all other paths remain denied
+  }
+}
