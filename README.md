@@ -1,69 +1,174 @@
 # Pockit
 
-Your money, wherever you go. A Flutter personal-finance app for CS 1635 MPX.
+**Your money, wherever you go.**
 
-## Current milestone
+Pockit is a Flutter personal-finance app for the CS 1635 MPX final project. It combines
+multi-currency expense tracking and currency conversion, with a monthly budget and
+spending dashboard planned next.
 
-- Green and warm off-white theme, four tabs, and a navigation rail for wider windows.
-- Guest-first app with optional sign-in from the top-right button.
-- Email/password and Google sign-in, session restoration, password reset, and sign-out.
-- Guest expenses live in memory and transfer automatically on sign-in or registration. Failed transfers can be retried while the app remains open.
-- Currency converter for USD, EUR, GBP, JPY, KRW, CAD, AUD, and CNY with swap,
-  effective rate dates, refresh, validation, loading, and retry states.
-- Add/edit expenses, category filters, and swipe-to-delete with confirmation and undo.
-- Per-account Cloud Firestore expense documents and stream-based updates.
-- Original minor-unit amounts, fixed USD conversions, saved rates, and rate dates.
-- Home and budget preferences remain for the dashboard/budget milestone.
+The app opens directly into guest mode. An account is optional; signing in enables
+cloud storage and transfers expenses entered during the current guest session.
 
-## Run
+## Project status
 
-Use Flutter compatible with the Dart SDK constraint in `pubspec.yaml`.
-Firebase is configured for iOS, Android, and Web, using project `pockit-90b0e`.
+| Phase | Status | Progress |
+| --- | --- | --- |
+| 1 — Foundation | Mostly complete | App theme, folder structure, navigation, and Firebase client configuration are implemented; repository setup and live configuration checks remain |
+| 2 — Currency converter | Implemented | Eight currencies, conversion, swapping, rate dates, validation, loading, and retry |
+| 3 — Expense tracking and accounts | Implemented; device verification remains | Expense CRUD, filters, gestures, Firestore streams, guest transfers, email/password authentication, and Google sign-in |
+| 4 — Dashboard and budget | Planned | Monthly budget, monthly totals, remaining balance, category breakdown, and month selection |
+| 5 — Polish and accessibility | In progress | Responsive navigation, improved expense cards, and automated tests exist; animation, final branding, and accessibility checks remain |
+| 6 — Submission | Planned | Screenshots, final documentation, project archive, and demo video |
+
+“Implemented” describes code in the project, not confirmation that every live Firebase
+setting or device flow has been manually verified.
+
+## Implemented features
+
+### App foundation
+
+- Dark green and warm off-white Material theme with rounded controls and cards.
+- Home, Expenses, Convert, and Settings tabs.
+- Bottom navigation on smaller screens and a navigation rail on wider screens.
+- Guest-first entry with a **Sign in** button in the top-right corner.
+- Firebase startup loading and retry screens.
+- Feature-separated models, services, repositories, ViewModels, views, and widgets.
+
+### Expense tracking
+
+- Add, edit, delete, and review expenses.
+- Amount, currency, category, purchase date, and optional description fields.
+- Fixed categories: Food, Shopping, Transportation, Entertainment, Travel, Bills, Other.
+- Category filtering, newest-first ordering, and loading/error/empty states.
+- Swipe-to-delete with confirmation and undo; visible edit/delete buttons are also available.
+- Full-width responsive expense cards with category icons, purchase details, prominent
+  original amounts, and USD conversions for foreign purchases.
+- Integer minor-unit storage with currency-aware precision and half-up USD rounding.
+- Saved original amount, converted USD amount, exchange rate, and effective rate date.
+- Description/category-only edits preserve the saved conversion; amount, currency,
+  or purchase-date changes recalculate it.
+- Per-user Firestore documents and live `snapshots()` updates.
+
+### Currency converter
+
+- USD, EUR, GBP, JPY, KRW, CAD, AUD, and CNY.
+- Source/destination selection, currency swapping, amount validation, and rate refresh.
+- Converted amount and effective rate date.
+- Loading indicators, error messages, and retry actions.
+- Local calculation when the amount changes, without a request for every keystroke.
+- Protection against older network responses replacing the latest selected pair.
+
+### Accounts and guest mode
+
+- Email/password registration and sign-in.
+- Google sign-in on the account screen, using native mobile authentication or a Web popup.
+- Password reset, session restoration, sign-out, and readable authentication errors.
+- Account changes clear the previous account's screens, forms, and expense subscriptions.
+- Guest expenses stay in memory without disk or cloud writes before authentication.
+- Signing in or registering transfers guest expenses while preserving their conversions.
+- Failed transfers retain pending purchases for retry while the app remains open.
+- Transfer retries reuse document IDs to avoid duplicate purchases and stay tied to
+  the account that started the transfer.
+
+## Planned implementation
+
+### Next phase — monthly budget and dashboard
+
+- [ ] Set and update one overall monthly budget in USD.
+- [ ] Persist budget and preferred entry currency in account settings.
+- [ ] Define temporary budget/preferences behavior for guests.
+- [ ] Show monthly spending, remaining budget, and percentage used.
+- [ ] Include saved USD conversions in totals for foreign purchases.
+- [ ] Show an explicit over-budget warning.
+- [ ] Add month navigation and category spending breakdowns.
+- [ ] Show recent expenses on Home.
+- [ ] Animate budget progress and spending changes.
+- [ ] Add settings models, repositories, ViewModels, and Firestore validation rules.
+
+### Remaining product work
+
+- [ ] Add a converter action to create an expense from the entered amount and currency.
+- [ ] Let users choose the preferred currency for new expense entries while reporting in USD.
+- [ ] Replace Home's introductory placeholder with the spending dashboard.
+- [ ] Complete Settings beyond account information and sign-out.
+- [ ] Expand loading, empty, and error coverage for budget/dashboard features.
+- [ ] Create the final app icon and launch screen.
+- [ ] Check contrast, larger text, small screens, landscape, and screen-reader behavior.
+- [ ] Manually verify Google authentication, guest transfers, and cloud sync on target platforms.
+
+Historical exchange rates, receipt scanning, bank connections, category-specific
+budgets, and multiple reporting currencies are outside the current MVP scope.
+
+## Run the app
+
+Use Flutter compatible with the Dart SDK constraint in `pubspec.yaml` (`^3.13.4`).
+Firebase client configuration targets iOS, Android, and Web using project `pockit-90b0e`.
 
 ```sh
 flutter pub get
 flutter run -d chrome
-# Or select an iOS simulator / Android emulator with flutter run.
-flutter analyze
-flutter test
 ```
 
-Fully stop and rerun after adding native Firebase plugins. macOS, Linux, and Windows
-are not configured Firebase targets. Run `flutterfire configure` to add targets or
-connect a different Firebase project.
+For mobile, start an iOS simulator or Android emulator and select it with `flutter run`.
+Fully stop and rebuild after adding native plugins; ordinary Dart UI changes can use
+hot reload. macOS, Linux, and Windows are not configured Firebase targets.
 
-Dependencies: Provider for state binding, HTTP for Frankfurter, Firebase Core,
-Firebase Authentication, and Cloud Firestore. `shared_preferences` remains installed
-from the earlier local-storage milestone; new expenses use Firestore.
+### Dependencies
 
-## Firebase setup and security rules
+| Package | Purpose |
+| --- | --- |
+| `provider` | ViewModel ownership and reactive state binding |
+| `http` | Frankfurter exchange-rate requests |
+| `firebase_core` | Firebase initialization |
+| `firebase_auth` | Account authentication and sessions |
+| `cloud_firestore` | Per-account expense storage and live updates |
+| `google_sign_in` | Native Google account authentication |
+| `cupertino_icons` | iOS-style icon library |
+| `shared_preferences` | Retained from the earlier local-storage prototype; current expenses use memory or Firestore |
+| `flutter_test`, `flutter_lints` | Automated testing and static analysis |
 
-1. Enable Email/Password in Firebase Authentication.
+## Firebase setup and checks
+
+1. Enable Email/Password and Google in Firebase Authentication.
 2. Create the default Cloud Firestore database.
-3. Publish the contents of `firestore.rules` in the Firestore Console's Rules tab.
-   Alternatively, review the rules and run:
+3. Publish the contents of [firestore.rules](firestore.rules) in the Firestore Console's
+   Rules tab, or review the rules and deploy them with:
 
    ```sh
    firebase deploy --only firestore:rules --project pockit-90b0e
    ```
 
-4. Start Pockit, create an account, and add a USD expense. Look under
+4. Start the app, create an account, and add a USD expense. Check
    `users/{your Firebase UID}/expenses/{expenseId}` in Firestore.
-5. Sign out and back in to verify the expense returns. A second account should have
-   its own empty list. A second app window signed into the same account receives
-   expense changes through `snapshots()`.
+5. Sign out and back in to verify persistence. Use another account to verify isolation,
+   and another app window with the same account to verify live updates.
+6. Add expenses as a guest, then sign in to verify they transfer successfully.
 
-Rules in this repository grant read/delete only to the path's authenticated owner.
-Create/update also validate field names, integer amount bounds, supported currencies,
-category, description length, timestamps, and a server-generated update timestamp.
-Unmatched paths are denied. Budget/preferences rules will be added with that feature.
-These local rules must be published to affect the live database; app code does not
-publish them automatically.
+Rules allow the owning account to read/delete its expenses. Creates/updates also
+validate field names, amount bounds, supported currencies, categories, description
+length, dates, and the server-generated update timestamp. Other paths remain denied;
+budget/preferences rules have not been added yet. Local rule files do not change
+the live database until published.
 
-Firebase client configuration in `lib/firebase_options.dart` contains public app
-identifiers, not administrative credentials. Never commit service-account credentials.
-The native iOS and Android client configuration files are also present. FlutterFire
-can regenerate the Dart options file when configuration changes.
+Firebase client configuration files contain app identifiers, not administrative
+credentials. Never commit service-account credentials. Run `flutterfire configure`
+to regenerate client options when changing projects or adding platforms.
+
+### Google sign-in setup
+
+The native client files have been refreshed and the iOS OAuth client ID and callback
+URL scheme are configured in `ios/Runner/Info.plist`.
+
+- **iOS:** Fully rebuild the app and verify the actual Google account chooser and callback.
+- **Android:** Register the signing certificate SHA-1 for each build type in Firebase
+  Project settings → Your apps → Android app → Add fingerprint, and refresh
+  `android/app/google-services.json` if needed.
+- **Web:** Verify the hostname, including localhost for local testing, is in Firebase
+  Authentication's authorized domains and that the browser permits sign-in popups.
+
+References: [Firebase federated authentication](https://firebase.google.com/docs/auth/flutter/federated-auth),
+[Google sign-in iOS setup](https://pub.dev/packages/google_sign_in_ios),
+[Google sign-in Android setup](https://pub.dev/packages/google_sign_in_android).
 
 ## Architecture
 
@@ -73,103 +178,75 @@ flowchart LR
   AuthVM -->|immutable AuthState| AuthUI
   AuthVM --> AuthService[AuthService / FirebaseAuthService]
   AuthService --> Auth[Firebase Authentication]
-  View[ConverterScreen] --> VM[ConverterViewModel]
-  VM -->|immutable ConverterState| View
-  VM --> Service[CurrencyService / FrankfurterCurrencyService]
-  Service --> API[Frankfurter API]
+  AuthVM --> Transfer[GuestTransferViewModel]
+  Transfer --> Guest[GuestExpenseRepository]
+  Transfer --> CloudRepo[FirestoreExpenseRepository]
+  Converter[ConverterScreen] --> CVM[ConverterViewModel]
+  CVM -->|immutable ConverterState| Converter
+  CVM --> Currency[CurrencyService / FrankfurterCurrencyService]
+  Currency --> API[Frankfurter API]
   Expenses[ExpensesScreen / ExpenseForm] --> EVM[ExpensesViewModel]
   EVM -->|immutable ExpensesState| Expenses
-  EVM --> Service
-  EVM --> Repository[ExpenseRepository / FirestoreExpenseRepository]
-  Repository -->|snapshots stream| EVM
-  Repository --> Cloud[users/userId/expenses]
+  EVM --> Currency
+  EVM --> Repository[ExpenseRepository interface]
+  Repository --> Guest
+  Repository --> CloudRepo
+  CloudRepo --> Cloud[users/userId/expenses]
 ```
 
-Models contain data. ViewModels own validation, state, and async orchestration.
-Services own authentication/API calls; the repository owns document mapping and
-Firestore operations. Widgets receive immutable state through Provider.
-Guests use an in-memory repository with no disk or cloud writes.
-Each authenticated account gets a separate workspace and Navigator. Changing accounts
-or signing out disposes the old forms, ViewModels, and stream subscriptions.
-Individual expense writes avoid overwriting the entire list when two devices edit
-separate expenses. Concurrent edits to the same document use last-write-wins behavior.
+Models represent data. ViewModels own validation, state, and async orchestration.
+Services handle authentication and HTTP calls; repositories handle expense storage.
+Views bind to state through Provider. Each account has a separate workspace and
+Navigator. Firestore subscriptions update expense state automatically.
 
-## Amounts, rates, and connectivity
+Individual document writes avoid overwriting the entire expense list. Concurrent
+edits to the same expense currently use last-write-wins behavior.
 
-Frankfurter documentation: https://frankfurter.dev/
-Endpoint: `https://api.frankfurter.dev/v2/rate/{base}/{quote}`. No API key is required.
+## Current behavior and limitations
 
-Rates are daily reference rates; bank/card quotes and fees may differ. Requests have
-a 15-second timeout. Amount edits calculate locally; currency-pair changes fetch a
-rate, and stale responses are ignored.
-Expenses use integer minor units and integer arithmetic with half-up USD rounding.
-Foreign expenses use the latest available rate, even for past purchase dates, as
-disclosed in the form. Description/category-only edits preserve the saved conversion;
-amount, currency, or date changes recalculate it. Foreign entries require a successful
-rate request. Firestore stores purchase/rate dates as timestamps and `updatedAt` as a
-server timestamp.
+- Rates come from the [Frankfurter API](https://frankfurter.dev/) at
+  `https://api.frankfurter.dev/v2/rate/{base}/{quote}`, with a 15-second request timeout.
+- Foreign purchases use the latest available daily reference rate, even for past
+  purchase dates. The form discloses this and saves the effective rate date.
+- Reference rates may differ from bank/card rates and fees.
+- Firestore can show local changes before the server confirms a write. Saving may
+  remain pending offline; reconnect and keep the app open to complete it.
+- Guest expenses and failed transfer queues are held in memory. Closing/restarting
+  the app before a successful upload loses those unsaved entries.
+- Legacy expenses from the earlier device-storage prototype are not imported from
+  shared preferences. This is separate from the implemented current-session guest transfer.
+- Budgets, monthly reporting, category charts, preferred entry currency, and the
+  converter-to-expense shortcut are not implemented yet.
 
-Firestore can emit cached/local changes before server confirmation. Save completion
-waits for the write to reach the backend, so it may remain pending offline. The user
-can leave the form and see a syncing reminder in Settings; reconnect and keep the app
-open to finish. Session restoration relies on Firebase Authentication's persistence.
-Earlier device-only expenses remain in the old local preferences; they are not
-silently uploaded or attributed to a newly signed-in account. Migration is not yet
-implemented.
+## Testing and validation
 
-## Tests
+Latest recorded checks: **26 Flutter tests passed**, `flutter analyze` reported no
+issues, and the iOS property-list files passed syntax validation. The Firestore rule
+smoke tests previously passed in local emulators. These checks do not replace manual
+Google OAuth or live-device testing.
 
 ```sh
 flutter analyze
 flutter test
 ```
 
-Tests use fake authentication, currency, and expense services without live accounts.
-They cover registration validation, auth failures, password-reset feedback, sign-out,
-account isolation with open forms, cancellation of listeners, remote expense updates,
-Firestore mapping, navigation, conversion and swapping, invalid amounts, retry,
-narrow-screen text scaling, expense add/edit/delete/undo, minor-unit rounding,
-preservation of conversions, filtering, and repository failures.
+The suite uses fake services and covers navigation, form validation, conversion,
+swapping, failures/retries, currency precision, stored conversions, expense CRUD and
+undo, live updates, account isolation, listener cleanup, guest sessions/transfers,
+Google sign-in/cancellation, and Firestore document mapping.
 
-Test Firestore rules separately using the Firebase CLI, Python 3, and a Java version
-supported by the Firebase emulators:
+For security-rule testing, install the Firebase CLI and use Python 3 and a Java
+version supported by the Firebase emulators:
 
 ```sh
 firebase emulators:exec --only auth,firestore --project demo-pockit 'python3 test/firestore_rules_smoke.py'
 ```
 
-This command uses local emulator accounts and a demo project, not the live project.
-It checks owner CRUD, denial of signed-out/cross-account access, and rejected malformed
-expense fields. It does not deploy rules.
+This uses a local demo project and temporary emulator accounts, checks owner CRUD,
+rejects unauthenticated/cross-account access and invalid fields, and does not deploy
+rules to the live project.
 
-## Remaining submission work
+## Screenshots and demo
 
-Publish and verify rules in the live project, test on iOS/Android devices, GitHub
-initialization and meaningful history, monthly budgets, dashboard, meaningful
-animations, final icon and launch screen, screenshots, and a 3–5 minute demo video.
-This milestone is not the complete MPX submission.
-
-## Google sign-in
-
-The account screen supports **Continue with Google** on both sign-in and registration.
-iOS and Android use the official `google_sign_in` plugin and exchange the ID token for
-a Firebase credential. Web uses Firebase's Google popup. Canceling the chooser leaves
-the user in guest mode. Existing guest purchases transfer through the same account
-transfer queue as email/password authentication.
-
-Google is enabled in the Firebase console. The refreshed native client files are
-included, and `ios/Runner/Info.plist` contains the iOS OAuth client ID and callback
-URL scheme. Fully stop and rebuild after installing the plugin.
-
-For Android, register your signing certificate SHA-1 in Firebase Project settings →
-Your apps → Android app → Add fingerprint. Use the certificate for each build type
-you test, then refresh `android/app/google-services.json` if required. The downloaded
-configuration currently includes the web OAuth client used as the server client ID.
-For Web, add the hostname you use (including localhost for local testing) to Firebase
-Authentication's authorized domains if it is not already listed, and allow popups.
-
-Setup references: https://firebase.google.com/docs/auth/flutter/federated-auth
-and https://pub.dev/packages/google_sign_in_ios
-
-Automated tests use a fake Google provider and do not open a real Google account
-chooser. Verify the full OAuth flow manually on your simulator/device and browser.
+Screenshots/GIFs and the 3–5 minute demo video will be added after the dashboard,
+budget, animation, and final branding are complete.
