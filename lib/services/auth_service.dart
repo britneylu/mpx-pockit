@@ -1,5 +1,6 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 
 import '../models/account.dart';
@@ -70,6 +71,19 @@ class FirebaseAuthService implements AuthService {
           'This site needs to be added to Firebase authorized domains.',
         _ => 'Authentication is unavailable. Please retry.',
       });
+    } on MissingPluginException {
+      throw const AuthFailure(
+        'Google sign-in needs an updated app build. Fully stop the app and run it again.',
+      );
+    } on PlatformException catch (error) {
+      if (error.code == 'channel-error') {
+        throw const AuthFailure(
+          'Google sign-in needs an updated app build. Fully stop the app and run it again.',
+        );
+      }
+      throw AuthFailure(
+        'Google sign-in couldn’t start (${error.code}). Please restart the app and retry.',
+      );
     }
   }
 

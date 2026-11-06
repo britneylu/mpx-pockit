@@ -164,7 +164,16 @@ class _AuthScreenState extends State<AuthScreen> {
                               FocusScope.of(context).unfocus();
                               model.signInWithGoogle();
                             },
-                      icon: const Icon(Icons.login),
+                      icon: Image.asset(
+                        'assets/images/google_g.png',
+                        width: 20,
+                        height: 20,
+                        excludeFromSemantics: true,
+                      ),
+                      style: OutlinedButton.styleFrom(
+                        backgroundColor: Colors.white,
+                        foregroundColor: const Color(0xFF1F1F1F),
+                      ),
                       label: const Text('Continue with Google'),
                     ),
                     TextButton(
