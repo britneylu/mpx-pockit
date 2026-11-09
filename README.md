@@ -3,8 +3,8 @@
 **Your money, wherever you go.**
 
 Pockit is a Flutter personal-finance app for the CS 1635 MPX final project. It combines
-multi-currency expense tracking and currency conversion, with a monthly budget and
-spending dashboard planned next.
+multi-currency expense tracking, currency conversion, and monthly budget settings.
+The spending dashboard is planned next.
 
 The app opens directly into guest mode. An account is optional; signing in enables
 cloud storage and transfers expenses entered during the current guest session.
@@ -16,7 +16,7 @@ cloud storage and transfers expenses entered during the current guest session.
 | 1 — Foundation | Mostly complete | App theme, folder structure, navigation, and Firebase client configuration are implemented; repository setup and live configuration checks remain |
 | 2 — Currency converter | Implemented | Eight currencies, conversion, swapping, rate dates, validation, loading, and retry |
 | 3 — Expense tracking and accounts | Implemented; device verification remains | Expense CRUD, filters, gestures, Firestore streams, guest transfers, email/password authentication, and Google sign-in |
-| 4 — Dashboard and budget | Planned | Monthly budget, monthly totals, remaining balance, category breakdown, and month selection |
+| 4 — Dashboard and budget | In progress | Monthly budget settings are implemented; monthly totals, remaining balance, category breakdown, and month selection are next |
 | 5 — Polish and accessibility | In progress | Responsive navigation, improved expense cards, and automated tests exist; animation, final branding, and accessibility checks remain |
 | 6 — Submission | Planned | Screenshots, final documentation, project archive, and demo video |
 
@@ -72,25 +72,27 @@ setting or device flow has been manually verified.
 
 ## Planned implementation
 
-### Next phase — monthly budget and dashboard
+### Monthly budget and dashboard
 
-- [ ] Set and update one overall monthly budget in USD.
-- [ ] Persist budget and preferred entry currency in account settings.
-- [ ] Define temporary budget/preferences behavior for guests.
+- [x] Set and update one recurring monthly budget in USD with validation and saving feedback.
+- [x] Save the budget in Firestore as integer USD cents with live updates.
+- [ ] Persist the preferred entry currency in account settings.
+- [x] Keep guest budgets in memory and transfer on sign-in, preserving an existing account budget.
 - [ ] Show monthly spending, remaining budget, and percentage used.
 - [ ] Include saved USD conversions in totals for foreign purchases.
 - [ ] Show an explicit over-budget warning.
 - [ ] Add month navigation and category spending breakdowns.
 - [ ] Show recent expenses on Home.
 - [ ] Animate budget progress and spending changes.
-- [ ] Add settings models, repositories, ViewModels, and Firestore validation rules.
+- [x] Add the budget repository, ViewModel, Settings form, and owner-only validation rules.
 
 ### Remaining product work
 
 - [ ] Add a converter action to create an expense from the entered amount and currency.
 - [ ] Let users choose the preferred currency for new expense entries while reporting in USD.
 - [ ] Replace Home's introductory placeholder with the spending dashboard.
-- [ ] Complete Settings beyond account information and sign-out.
+- [x] Add monthly budget editing to Settings.
+- [ ] Add the preferred entry currency to Settings.
 - [ ] Expand loading, empty, and error coverage for budget/dashboard features.
 - [ ] Create the final app icon and launch screen.
 - [ ] Check contrast, larger text, small screens, landscape, and screen-reader behavior.
@@ -147,7 +149,7 @@ hot reload. macOS, Linux, and Windows are not configured Firebase targets.
 Rules allow the owning account to read/delete its expenses. Creates/updates also
 validate field names, amount bounds, supported currencies, categories, description
 length, dates, and the server-generated update timestamp. Other paths remain denied;
-budget/preferences rules have not been added yet. Local rule files do not change
+budget validation rules are included; preferred-currency rules will be added later. Local rule files do not change
 the live database until published.
 
 Firebase client configuration files contain app identifiers, not administrative
@@ -215,12 +217,12 @@ edits to the same expense currently use last-write-wins behavior.
   the app before a successful upload loses those unsaved entries.
 - Legacy expenses from the earlier device-storage prototype are not imported from
   shared preferences. This is separate from the implemented current-session guest transfer.
-- Budgets, monthly reporting, category charts, preferred entry currency, and the
+- Monthly reporting, category charts, preferred entry currency, and the
   converter-to-expense shortcut are not implemented yet.
 
 ## Testing and validation
 
-Latest recorded checks: **26 Flutter tests passed**, `flutter analyze` reported no
+Latest recorded checks: **33 Flutter tests passed**, `flutter analyze` reported no
 issues, and the iOS property-list files passed syntax validation. The Firestore rule
 smoke tests previously passed in local emulators. These checks do not replace manual
 Google OAuth or live-device testing.
@@ -250,3 +252,17 @@ rules to the live project.
 
 Screenshots/GIFs and the 3–5 minute demo video will be added after the dashboard,
 budget, animation, and final branding are complete.
+
+## Monthly budget settings
+
+Settings now has one monthly limit in USD. It applies every month until changed.
+Signed-in users store it at `users/{userId}/settings/preferences` as
+`monthlyBudgetMinor`, with `reportingCurrency: USD` and a server update timestamp.
+Guests keep the value in memory. On sign-in it is copied to the account only if no
+budget is already saved. Failed transfers can be retried from Settings.
+
+Publish the updated `firestore.rules` before testing cloud budget saves. Guest mode
+works without publishing rules. Budget tests cover validation, exact cents, loading,
+save failures, guest transfer, existing budgets, and isolation between accounts.
+
+Suggested feature commit: `feat: add monthly budget settings`

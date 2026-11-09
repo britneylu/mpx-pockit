@@ -1,3 +1,4 @@
+import 'package:pockit/repositories/budget_repository.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:pockit/app.dart';
@@ -15,6 +16,7 @@ void main() {
     final auth = FakeAuthService(account: null);
     await tester.pumpWidget(
       PockitApp(
+        budgetRepositoryFactory: (_) => MemoryBudgetRepository(),
         authService: auth,
         expenseRepositoryFactory: (_) => MemoryExpenseRepository(),
       ),
@@ -77,6 +79,7 @@ void main() {
     final second = MemoryExpenseRepository();
     await tester.pumpWidget(
       PockitApp(
+        budgetRepositoryFactory: (_) => MemoryBudgetRepository(),
         authService: auth,
         expenseRepositoryFactory: (id) => id == 'test-user' ? first : second,
       ),
@@ -120,6 +123,7 @@ void main() {
     final auth = FakeAuthService(account: null);
     await tester.pumpWidget(
       PockitApp(
+        budgetRepositoryFactory: (_) => MemoryBudgetRepository(),
         authService: auth,
         expenseRepositoryFactory: (_) => MemoryExpenseRepository(),
       ),

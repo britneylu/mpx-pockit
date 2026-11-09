@@ -70,3 +70,28 @@ write(token, {**fields, 'description': {'stringValue': 'Updated lunch'}})
 request(base + ':commit', {'writes': [{'delete': name}]}, other_token, 403)
 request(base + ':commit', {'writes': [{'delete': name}]}, token)
 print('Firestore rules passed: owner CRUD, cross-account denial, signed-out denial, and field validation.')
+
+# check owner access and field validation for monthly budget settings
+budget_path = f'users/{uid}/settings/preferences'
+budget_name = f'projects/{PROJECT}/databases/(default)/documents/{budget_path}'
+budget_fields = {'monthlyBudgetMinor': {'integerValue': '120000'},
+                 'reportingCurrency': {'stringValue': 'USD'}}
+def budget_write(actor_token, values, expected=200):
+    return request(base + ':commit', {'writes': [{
+        'update': {'name': budget_name, 'fields': values},
+        'updateTransforms': [{'fieldPath': 'updatedAt', 'setToServerValue': 'REQUEST_TIME'}],
+    }]}, actor_token, expected)
+
+budget_write(token, budget_fields)
+request(base + '/' + budget_path, token=token)
+request(base + '/' + budget_path, token=other_token, expected=403)
+request(base + '/' + budget_path, expected=403)
+budget_write(other_token, budget_fields, 403)
+budget_write(None, budget_fields, 403)
+for invalid in ['0', '-1', '1000000000001']:
+    budget_write(token, {**budget_fields, 'monthlyBudgetMinor': {'integerValue': invalid}}, 403)
+budget_write(token, {**budget_fields, 'monthlyBudgetMinor': {'doubleValue': 12.5}}, 403)
+budget_write(token, {**budget_fields, 'reportingCurrency': {'stringValue': 'EUR'}}, 403)
+budget_write(token, {**budget_fields, 'extra': {'stringValue': 'no'}}, 403)
+budget_write(token, {**budget_fields, 'monthlyBudgetMinor': {'integerValue': '130000'}})
+print('Budget rules passed: owner access, cross-account denial, and usd minor-unit validation')

@@ -33,7 +33,18 @@ service cloud.firestore {
       allow read, delete: if owner(userId);
       allow create, update: if owner(userId) && validExpense();
     }
-    // budget/preferences rules will be added with the settings feature
+    // validate the recurring usd budget for the owning account
+    match /users/{userId}/settings/preferences {
+      allow read: if owner(userId);
+      allow create, update: if owner(userId)
+        && request.resource.data.keys().hasAll(['monthlyBudgetMinor', 'reportingCurrency', 'updatedAt'])
+        && request.resource.data.keys().hasOnly(['monthlyBudgetMinor', 'reportingCurrency', 'updatedAt'])
+        && request.resource.data.monthlyBudgetMinor is int
+        && request.resource.data.monthlyBudgetMinor > 0
+        && request.resource.data.monthlyBudgetMinor <= 1000000000000
+        && request.resource.data.reportingCurrency == 'USD'
+        && request.resource.data.updatedAt == request.time;
+    }
     // all other paths remain denied
   }
 }

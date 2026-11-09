@@ -1,3 +1,4 @@
+import 'package:pockit/repositories/budget_repository.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:pockit/app.dart';
@@ -26,6 +27,7 @@ Future<void> openConverter(
 ) async {
   await tester.pumpWidget(
     PockitApp(
+      budgetRepositoryFactory: (_) => MemoryBudgetRepository(),
       currencyService: service,
       authService: FakeAuthService(),
       expenseRepositoryFactory: (_) => MemoryExpenseRepository(),
@@ -40,6 +42,7 @@ void main() {
   testWidgets('navigation opens each tab', (tester) async {
     await tester.pumpWidget(
       PockitApp(
+        budgetRepositoryFactory: (_) => MemoryBudgetRepository(),
         currencyService: FakeCurrencyService(),
         authService: FakeAuthService(),
         expenseRepositoryFactory: (_) => MemoryExpenseRepository(),
@@ -103,6 +106,7 @@ void main() {
           child: child!,
         ),
         home: PockitApp(
+          budgetRepositoryFactory: (_) => MemoryBudgetRepository(),
           currencyService: FakeCurrencyService(),
           authService: FakeAuthService(),
           expenseRepositoryFactory: (_) => MemoryExpenseRepository(),

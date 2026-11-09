@@ -1,3 +1,4 @@
+import 'package:pockit/repositories/budget_repository.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:pockit/app.dart';
@@ -11,6 +12,7 @@ void main() {
     (tester) async {
       var cloudRequests = 0;
       Widget app(Key key) => PockitApp(
+        budgetRepositoryFactory: (_) => MemoryBudgetRepository(),
         key: key,
         authService: FakeAuthService(account: null),
         expenseRepositoryFactory: (_) {

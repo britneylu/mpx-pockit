@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import 'core/app_theme.dart';
+import 'repositories/budget_repository.dart';
+import 'viewmodels/budget_viewmodel.dart';
 import 'services/currency_service.dart';
 import 'viewmodels/converter_viewmodel.dart';
 import 'views/converter_screen.dart';
@@ -25,16 +27,25 @@ class PockitApp extends StatelessWidget {
     this.currencyService,
     this.authService,
     this.expenseRepositoryFactory,
+    this.budgetRepositoryFactory,
   });
   final CurrencyService? currencyService;
   final AuthService? authService;
   final ExpenseRepositoryFactory? expenseRepositoryFactory;
+  final BudgetRepository Function(String)? budgetRepositoryFactory;
 
   @override
   Widget build(BuildContext context) => MultiProvider(
     providers: [
       ChangeNotifierProvider(
         create: (_) => AuthViewModel(authService ?? FirebaseAuthService()),
+      ),
+      ChangeNotifierProvider(
+        lazy: false,
+        create: (context) => BudgetViewModel(
+          context.read<AuthViewModel>(),
+          budgetRepositoryFactory ?? (id) => FirestoreBudgetRepository(id),
+        ),
       ),
       ChangeNotifierProvider(
         lazy: false,

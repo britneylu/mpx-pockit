@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../viewmodels/auth_viewmodel.dart';
+import '../viewmodels/budget_viewmodel.dart';
+import '../widgets/budget_settings_card.dart';
 import '../viewmodels/expenses_viewmodel.dart';
 
 // show the signed in account and sign out controls
@@ -11,7 +13,10 @@ class SettingsScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final auth = context.watch<AuthViewModel>();
     // check whether an expense write is still pending
-    final saving = context.watch<ExpensesViewModel>().state.saving;
+    final saving =
+        context.watch<ExpensesViewModel>().state.saving ||
+        context.watch<BudgetViewModel>().state.saving ||
+        context.watch<BudgetViewModel>().state.transferring;
     // explain guest storage without requiring an account
     if (auth.state.account == null) {
       return ListView(
@@ -28,7 +33,8 @@ class SettingsScreen extends StatelessWidget {
             'Explore Pockit without an account. Expenses stay in this session only and disappear when you close or restart the app. Use Sign in at the top right to save future expenses to your account.',
           ),
           const SizedBox(height: 24),
-          const Text('Budget and currency preferences are coming next.'),
+          const BudgetSettingsCard(guest: true),
+          const Text('Preferred entry currency is coming next.'),
         ],
       );
     }
@@ -52,7 +58,7 @@ class SettingsScreen extends StatelessWidget {
           const Padding(
             padding: EdgeInsets.only(top: 12),
             child: Text(
-              'An expense is still syncing. Keep the app open and reconnect to finish saving.',
+              'Your changes are still syncing. Keep the app open and reconnect to finish saving.',
             ),
           ),
         if (auth.state.error != null)
@@ -72,7 +78,7 @@ class SettingsScreen extends StatelessWidget {
                       title: const Text('Sign out?'),
                       content: Text(
                         saving
-                            ? 'An expense is still syncing. It may not have reached the cloud yet. Sign out anyway?'
+                            ? 'Your changes are still syncing. They may not have reached the cloud yet. Sign out anyway?'
                             : 'Your cloud expenses will be available when you sign in again.',
                       ),
                       actions: [
@@ -93,7 +99,8 @@ class SettingsScreen extends StatelessWidget {
           label: Text(auth.state.busy ? 'Signing out…' : 'Sign out'),
         ),
         const SizedBox(height: 32),
-        const Text('Budget and currency preferences are coming next.'),
+        const BudgetSettingsCard(guest: false),
+        const Text('Preferred entry currency is coming next.'),
         const SizedBox(height: 16),
         const Text('Pockit · Your money, wherever you go.'),
       ],

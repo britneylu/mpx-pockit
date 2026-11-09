@@ -1,3 +1,4 @@
+import 'package:pockit/repositories/budget_repository.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:pockit/app.dart';
@@ -31,6 +32,7 @@ void main() {
     final repo = MemoryExpenseRepository();
     await tester.pumpWidget(
       PockitApp(
+        budgetRepositoryFactory: (_) => MemoryBudgetRepository(),
         authService: FakeAuthService(),
         expenseRepositoryFactory: (_) => repo,
       ),
