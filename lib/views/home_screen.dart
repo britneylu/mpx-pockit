@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../core/money.dart';
 import '../models/currency.dart';
 import '../viewmodels/dashboard_viewmodel.dart';
+import '../widgets/budget_progress.dart';
 
 // show one month of spending without making extra database requests
 class HomeScreen extends StatelessWidget {
@@ -174,6 +175,10 @@ class HomeScreen extends StatelessWidget {
                       fontWeight: FontWeight.w600,
                     ),
                   ),
+                  if (state.budgetUsage != null) ...[
+                    const SizedBox(height: 20),
+                    BudgetProgress(usage: state.budgetUsage!),
+                  ],
                   const SizedBox(height: 16),
                   const Divider(),
                   const SizedBox(height: 8),

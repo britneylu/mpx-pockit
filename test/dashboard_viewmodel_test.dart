@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:pockit/viewmodels/dashboard_viewmodel.dart';
 import 'package:pockit/models/currency.dart';
 
 import 'helpers/dashboard_fixture.dart';
@@ -79,4 +80,28 @@ void main() {
       expect(noBudget.model.state.remainingMinor, isNull);
     },
   );
+  test('budget usage preserves overages and stays unavailable for missing or failed data', () {
+    DashboardState snapshot(
+      int spent,
+      int? budget, {
+      bool loading = false,
+      String? error,
+    }) => DashboardState(
+      month: DateTime(2026, 11),
+      spentMinor: spent,
+      expenseCount: 1,
+      budgetMinor: budget,
+      expensesLoading: loading,
+      budgetLoading: false,
+      expensesError: error,
+    );
+    expect(snapshot(0, 10000).budgetUsage, 0);
+    expect(snapshot(5000, 10000).budgetUsage, 0.5);
+    expect(snapshot(10000, 10000).budgetUsage, 1);
+    expect(snapshot(15000, 10000).budgetUsage, 1.5);
+    expect(snapshot(5000, null).budgetUsage, isNull);
+    expect(snapshot(5000, 0).budgetUsage, isNull);
+    expect(snapshot(5000, 10000, loading: true).budgetUsage, isNull);
+    expect(snapshot(5000, 10000, error: 'unavailable').budgetUsage, isNull);
+  });
 }

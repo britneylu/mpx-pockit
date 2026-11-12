@@ -24,6 +24,11 @@ class DashboardState {
   final bool budgetLoading;
   final String? expensesError;
   final String? budgetError;
+  // keep usage above one when spending exceeds the budget
+  double? get budgetUsage => remainingMinor == null || budgetMinor! <= 0
+      ? null
+      : spentMinor / budgetMinor!;
+
   int? get remainingMinor =>
       expensesLoading ||
           budgetLoading ||

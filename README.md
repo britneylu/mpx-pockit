@@ -4,7 +4,7 @@
 
 Pockit is a Flutter personal-finance app for the CS 1635 MPX final project. It combines
 multi-currency expense tracking, currency conversion, and monthly budget settings.
-Home now shows a monthly spending summary. Charts and budget animations are planned next.
+Home shows a monthly spending summary and animated budget progress. Category charts are next.
 
 The app opens directly into guest mode. An account is optional; signing in enables
 cloud storage and transfers expenses entered during the current guest session.
@@ -16,8 +16,8 @@ cloud storage and transfers expenses entered during the current guest session.
 | 1 — Foundation | Mostly complete | App theme, folder structure, navigation, and Firebase client configuration are implemented; repository setup and live configuration checks remain |
 | 2 — Currency converter | Implemented | Eight currencies, conversion, swapping, rate dates, validation, loading, and retry |
 | 3 — Expense tracking and accounts | Implemented; device verification remains | Expense CRUD, filters, gestures, Firestore streams, guest transfers, email/password authentication, and Google sign-in |
-| 4 — Dashboard and budget | In progress | Monthly budget settings, spending totals, remaining balance, and month selection are implemented; category charts and animations are next |
-| 5 — Polish and accessibility | In progress | Responsive navigation, improved expense cards, and automated tests exist; animation, final branding, and accessibility checks remain |
+| 4 — Dashboard and budget | In progress | Monthly budget settings, spending totals, remaining balance, month selection, and animated progress are implemented; category charts are next |
+| 5 — Polish and accessibility | In progress | Responsive navigation, improved expense cards, and automated tests and budget animations exist; final branding and accessibility checks remain |
 | 6 — Submission | Planned | Screenshots, final documentation, project archive, and demo video |
 
 “Implemented” describes code in the project, not confirmation that every live Firebase
@@ -79,13 +79,13 @@ setting or device flow has been manually verified.
 - [ ] Persist the preferred entry currency in account settings.
 - [x] Keep guest budgets in memory and transfer on sign-in, preserving an existing account budget.
 - [x] Show monthly spending and remaining budget on Home.
-- [ ] Show the percentage of budget used with animated progress.
+- [x] Show the percentage of budget used with animated progress, over-budget status, and reduced-motion support.
 - [ ] Include saved USD conversions in totals for foreign purchases.
 - [x] Show the amount over budget when spending exceeds the limit.
 - [x] Add previous/next month navigation and a shortcut to the current month.
 - [ ] Add category spending breakdowns.
 - [ ] Show recent expenses on Home.
-- [ ] Animate budget progress and spending changes.
+- [x] Animate budget progress when spending, the budget, or the selected month changes.
 - [x] Add the budget repository, ViewModel, Settings form, and owner-only validation rules.
 
 ### Remaining product work
@@ -223,12 +223,12 @@ edits to the same expense currently use last-write-wins behavior.
   the app before a successful upload loses those unsaved entries.
 - Legacy expenses from the earlier device-storage prototype are not imported from
   shared preferences. This is separate from the implemented current-session guest transfer.
-- Category charts, budget progress animations, preferred entry currency, and the
+- Category charts, preferred entry currency, and the
   converter-to-expense shortcut are not implemented yet.
 
 ## Testing and validation
 
-Latest recorded checks: **39 Flutter tests passed**, `flutter analyze` reported no
+Latest recorded checks: **43 Flutter tests passed**, `flutter analyze` reported no
 issues, and the iOS property-list files passed syntax validation. The Firestore rule
 smoke tests previously passed in local emulators. These checks do not replace manual
 Google OAuth or live-device testing.
@@ -283,3 +283,13 @@ The current recurring budget applies to every selected month; historical budget
 limits are not stored. Expense and budget changes update the summary automatically.
 
 Suggested feature commit: `feat: add monthly spending summary`
+
+## Animated budget progress
+
+The Home budget card shows the percentage used and animates the bar when spending,
+the budget, or the selected month changes. Spending over the limit still shows the
+actual percentage, while the bar stops at full. Text and icons distinguish within
+budget, budget reached, and over budget. Screen readers receive the final percentage
+and status; reduced-motion settings skip the animation.
+
+Suggested feature commit: `feat: add animated budget progress`
