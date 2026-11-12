@@ -4,7 +4,7 @@
 
 Pockit is a Flutter personal-finance app for the CS 1635 MPX final project. It combines
 multi-currency expense tracking, currency conversion, and monthly budget settings.
-The spending dashboard is planned next.
+Home now shows a monthly spending summary. Charts and budget animations are planned next.
 
 The app opens directly into guest mode. An account is optional; signing in enables
 cloud storage and transfers expenses entered during the current guest session.
@@ -16,7 +16,7 @@ cloud storage and transfers expenses entered during the current guest session.
 | 1 — Foundation | Mostly complete | App theme, folder structure, navigation, and Firebase client configuration are implemented; repository setup and live configuration checks remain |
 | 2 — Currency converter | Implemented | Eight currencies, conversion, swapping, rate dates, validation, loading, and retry |
 | 3 — Expense tracking and accounts | Implemented; device verification remains | Expense CRUD, filters, gestures, Firestore streams, guest transfers, email/password authentication, and Google sign-in |
-| 4 — Dashboard and budget | In progress | Monthly budget settings are implemented; monthly totals, remaining balance, category breakdown, and month selection are next |
+| 4 — Dashboard and budget | In progress | Monthly budget settings, spending totals, remaining balance, and month selection are implemented; category charts and animations are next |
 | 5 — Polish and accessibility | In progress | Responsive navigation, improved expense cards, and automated tests exist; animation, final branding, and accessibility checks remain |
 | 6 — Submission | Planned | Screenshots, final documentation, project archive, and demo video |
 
@@ -78,10 +78,12 @@ setting or device flow has been manually verified.
 - [x] Save the budget in Firestore as integer USD cents with live updates.
 - [ ] Persist the preferred entry currency in account settings.
 - [x] Keep guest budgets in memory and transfer on sign-in, preserving an existing account budget.
-- [ ] Show monthly spending, remaining budget, and percentage used.
+- [x] Show monthly spending and remaining budget on Home.
+- [ ] Show the percentage of budget used with animated progress.
 - [ ] Include saved USD conversions in totals for foreign purchases.
-- [ ] Show an explicit over-budget warning.
-- [ ] Add month navigation and category spending breakdowns.
+- [x] Show the amount over budget when spending exceeds the limit.
+- [x] Add previous/next month navigation and a shortcut to the current month.
+- [ ] Add category spending breakdowns.
 - [ ] Show recent expenses on Home.
 - [ ] Animate budget progress and spending changes.
 - [x] Add the budget repository, ViewModel, Settings form, and owner-only validation rules.
@@ -90,7 +92,7 @@ setting or device flow has been manually verified.
 
 - [ ] Add a converter action to create an expense from the entered amount and currency.
 - [ ] Let users choose the preferred currency for new expense entries while reporting in USD.
-- [ ] Replace Home's introductory placeholder with the spending dashboard.
+- [x] Replace the Home placeholder with a monthly spending summary.
 - [x] Add monthly budget editing to Settings.
 - [ ] Add the preferred entry currency to Settings.
 - [ ] Expand loading, empty, and error coverage for budget/dashboard features.
@@ -176,6 +178,10 @@ References: [Firebase federated authentication](https://firebase.google.com/docs
 
 ```mermaid
 flowchart LR
+  Home[HomeScreen] --> Dashboard[DashboardViewModel]
+  Dashboard --> EVM
+  Dashboard --> Budget[BudgetViewModel]
+  Dashboard -->|monthly totals| Home
   AuthUI[AuthScreen / SettingsScreen] --> AuthVM[AuthViewModel]
   AuthVM -->|immutable AuthState| AuthUI
   AuthVM --> AuthService[AuthService / FirebaseAuthService]
@@ -217,12 +223,12 @@ edits to the same expense currently use last-write-wins behavior.
   the app before a successful upload loses those unsaved entries.
 - Legacy expenses from the earlier device-storage prototype are not imported from
   shared preferences. This is separate from the implemented current-session guest transfer.
-- Monthly reporting, category charts, preferred entry currency, and the
+- Category charts, budget progress animations, preferred entry currency, and the
   converter-to-expense shortcut are not implemented yet.
 
 ## Testing and validation
 
-Latest recorded checks: **33 Flutter tests passed**, `flutter analyze` reported no
+Latest recorded checks: **39 Flutter tests passed**, `flutter analyze` reported no
 issues, and the iOS property-list files passed syntax validation. The Firestore rule
 smoke tests previously passed in local emulators. These checks do not replace manual
 Google OAuth or live-device testing.
@@ -266,3 +272,14 @@ works without publishing rules. Budget tests cover validation, exact cents, load
 save failures, guest transfer, existing budgets, and isolation between accounts.
 
 Suggested feature commit: `feat: add monthly budget settings`
+
+## Monthly spending summary
+
+Home shows total spending, expense count, the current monthly budget, and the
+remaining balance for a selected month. Foreign purchases use their saved USD
+conversions. Totals include all categories, even if the Expenses tab is filtered.
+Use the arrows to switch months or **This month** to return to the current month.
+The current recurring budget applies to every selected month; historical budget
+limits are not stored. Expense and budget changes update the summary automatically.
+
+Suggested feature commit: `feat: add monthly spending summary`

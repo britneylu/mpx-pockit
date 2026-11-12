@@ -67,7 +67,8 @@ class ExpensesViewModel extends ChangeNotifier {
     if (_state.saving || _disposed) return;
     // ignore events from an older subscription
     final generation = ++_generation;
-    await _subscription?.cancel();
+    // start the replacement stream without waiting for the old listener
+    unawaited(_subscription?.cancel());
     if (_disposed || generation != _generation) return;
     _emit(loading: true);
     final first = Completer<void>();

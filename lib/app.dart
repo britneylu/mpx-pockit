@@ -7,6 +7,8 @@ import 'viewmodels/budget_viewmodel.dart';
 import 'services/currency_service.dart';
 import 'viewmodels/converter_viewmodel.dart';
 import 'views/converter_screen.dart';
+import 'views/home_screen.dart';
+import 'viewmodels/dashboard_viewmodel.dart';
 import 'views/expenses_screen.dart';
 import 'repositories/expense_repository.dart';
 import 'repositories/firestore_expense_repository.dart';
@@ -100,6 +102,12 @@ class _AccountWorkspace extends StatelessWidget {
             currencyService,
           )..load(),
         ),
+        ChangeNotifierProvider(
+          create: (context) => DashboardViewModel(
+            context.read<ExpensesViewModel>(),
+            context.read<BudgetViewModel>(),
+          ),
+        ),
       ],
       child: MaterialApp(
         title: 'Pockit',
@@ -156,15 +164,10 @@ class _PockitShellState extends State<PockitShell> {
           child: IndexedStack(
             index: _index,
             children: [
-              _PlaceholderPage(
-                icon: Icons.account_balance_wallet_outlined,
-                title: 'Your money, wherever you go.',
-                message: 'Welcome to Pockit. Your monthly overview will live here as we add expense tracking and budgets.',
-                action: FilledButton.icon(
-                  onPressed: () => _select(2),
-                  icon: const Icon(Icons.currency_exchange),
-                  label: const Text('Try the converter'),
-                ),
+              HomeScreen(
+                onExpenses: () => _select(1),
+                onSettings: () => _select(3),
+                onConvert: () => _select(2),
               ),
               const ExpensesScreen(),
               const ConverterScreen(),
@@ -267,45 +270,4 @@ class _PockitShellState extends State<PockitShell> {
       },
     );
   }
-}
-
-// show introductory content for unfinished features
-class _PlaceholderPage extends StatelessWidget {
-  const _PlaceholderPage({
-    required this.icon,
-    required this.title,
-    required this.message,
-    this.action,
-  });
-  final IconData icon;
-  final String title;
-  final String message;
-  final Widget? action;
-  @override
-  Widget build(BuildContext context) => ListView(
-    padding: const EdgeInsets.all(24),
-    children: [
-      const SizedBox(height: 32),
-      Align(
-        alignment: Alignment.centerLeft,
-        child: CircleAvatar(
-          radius: 32,
-          backgroundColor: const Color(0xFFDDE9E1),
-          child: Icon(
-            icon,
-            size: 30,
-            color: Theme.of(context).colorScheme.primary,
-          ),
-        ),
-      ),
-      const SizedBox(height: 24),
-      Text(title, style: Theme.of(context).textTheme.headlineMedium),
-      const SizedBox(height: 16),
-      Text(message, style: Theme.of(context).textTheme.bodyLarge),
-      if (action != null) ...[
-        const SizedBox(height: 24),
-        Align(alignment: Alignment.centerLeft, child: action!),
-      ],
-    ],
-  );
 }
