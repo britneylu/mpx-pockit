@@ -104,4 +104,114 @@ void main() {
     expect(snapshot(5000, 10000, loading: true).budgetUsage, isNull);
     expect(snapshot(5000, 10000, error: 'unavailable').budgetUsage, isNull);
   });
+  test(
+    'category totals use saved usd amounts and stable descending order',
+    () async {
+      final fixture = DashboardFixture();
+      await fixture.initialize(
+        values: [
+          summaryExpense('food one', DateTime(2026, 11), 1250),
+          summaryExpense(
+            'food two',
+            DateTime(2026, 11),
+            750,
+            currency: Currency.jpy,
+          ),
+          summaryExpense(
+            'travel',
+            DateTime(2026, 11),
+            2000,
+            category: 'Travel',
+          ),
+          summaryExpense(
+            'shopping',
+            DateTime(2026, 11),
+            1000,
+            category: 'Shopping',
+          ),
+          summaryExpense('outside', DateTime(2026, 10), 40000),
+        ],
+      );
+      addTearDown(fixture.dispose);
+      final categories = fixture.model.state.categories;
+      expect(categories.map((item) => item.category), [
+        'Food',
+        'Travel',
+        'Shopping',
+      ]);
+      expect(categories.map((item) => item.amountUsdMinor), [2000, 2000, 1000]);
+      expect(categories.first.expenseCount, 2);
+      expect(categories.first.share, 0.4);
+      expect(
+        categories.fold(0, (sum, item) => sum + item.amountUsdMinor),
+        fixture.model.state.spentMinor,
+      );
+      expect(() => categories.clear(), throwsUnsupportedError);
+      fixture.expenses.setFilter('Travel');
+      expect(fixture.model.state.categories.length, 3);
+      fixture.model.previousMonth();
+      expect(fixture.model.state.categories.single.amountUsdMinor, 40000);
+    },
+  );
+  test('category totals update after remote edits and handle zero or empty spending', () async {
+    final fixture = DashboardFixture();
+    await fixture.initialize();
+    addTearDown(fixture.dispose);
+    expect(fixture.model.state.categories, isEmpty);
+    fixture.repository.remoteUpdate([
+      summaryExpense('rounded', DateTime(2026, 11), 0),
+    ]);
+    await Future<void>.delayed(Duration.zero);
+    expect(fixture.model.state.categories.single.share, 0);
+    expect(fixture.model.state.categories.single.expenseCount, 1);
+    fixture.repository.remoteUpdate([
+      summaryExpense('edited', DateTime(2026, 11), 500, category: 'Bills'),
+    ]);
+    await Future<void>.delayed(Duration.zero);
+    expect(fixture.model.state.categories.single.category, 'Bills');
+    expect(fixture.model.state.categories.single.share, 1);
+    fixture.repository.remoteUpdate([]);
+    await Future<void>.delayed(Duration.zero);
+    expect(fixture.model.state.categories, isEmpty);
+  });
+  test('category selection filters every monthly expense without changing summary totals', () async {
+    final fixture = DashboardFixture();
+    await fixture.initialize(
+      values: [
+        summaryExpense('food older', DateTime(2026, 11, 1), 1000),
+        summaryExpense(
+          'travel',
+          DateTime(2026, 11, 3),
+          2000,
+          category: 'Travel',
+        ),
+        summaryExpense('food newer', DateTime(2026, 11, 2), 500),
+        summaryExpense('other month', DateTime(2026, 10, 1), 10000),
+      ],
+    );
+    addTearDown(fixture.dispose);
+    fixture.model.selectCategory('Food');
+    expect(fixture.model.state.visibleExpenses.map((e) => e.id), [
+      'food newer',
+      'food older',
+    ]);
+    expect(fixture.model.state.spentMinor, 3500);
+    expect(fixture.model.state.categories.length, 2);
+    expect(fixture.expenses.state.filter, isNull);
+    expect(
+      () => fixture.model.state.visibleExpenses.clear(),
+      throwsUnsupportedError,
+    );
+    fixture.model.selectCategory('Food');
+    expect(fixture.model.state.visibleExpenses.length, 3);
+    fixture.model.selectCategory('Travel');
+    fixture.repository.remoteUpdate([
+      summaryExpense('new travel', DateTime(2026, 11), 800, category: 'Travel'),
+    ]);
+    await Future<void>.delayed(Duration.zero);
+    expect(fixture.model.state.visibleExpenses.single.id, 'new travel');
+    fixture.model.previousMonth();
+    expect(fixture.model.state.selectedCategory, isNull);
+    expect(fixture.model.state.visibleExpenses, isEmpty);
+  });
 }

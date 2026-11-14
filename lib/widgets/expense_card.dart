@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../core/money.dart';
+import '../core/category_style.dart';
 import '../models/currency.dart';
 import '../models/expense.dart';
 
@@ -30,6 +31,7 @@ class ExpenseCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colors = theme.colorScheme;
+    final categoryColor = CategoryStyle.color(expense.category);
     final foreign = expense.currency != Currency.usd;
     final date = expense.date.toIso8601String().split('T').first;
     final amount = Column(
@@ -60,10 +62,10 @@ class ExpenseCard extends StatelessWidget {
         Container(
           padding: const EdgeInsets.all(12),
           decoration: BoxDecoration(
-            color: colors.primaryContainer.withValues(alpha: 0.5),
+            color: CategoryStyle.tint(expense.category, strength: 0.12),
             borderRadius: BorderRadius.circular(16),
           ),
-          child: Icon(_icon, color: colors.primary),
+          child: Icon(_icon, color: categoryColor),
         ),
         const SizedBox(width: 14),
         Expanded(

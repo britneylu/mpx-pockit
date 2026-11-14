@@ -32,7 +32,10 @@ void main() {
     );
     await tester.pumpAndSettle();
     expect(find.text('November 2026'), findsOneWidget);
-    expect(find.text('125.00 USD'), findsOneWidget);
+    expect(
+      tester.widget<Text>(find.byKey(const Key('monthlySpent'))).data,
+      '125.00 USD',
+    );
     await tester.ensureVisible(find.byKey(const Key('monthlyRemaining')));
     await tester.pumpAndSettle();
     expect(find.text('Over budget by'), findsOneWidget);
